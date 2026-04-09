@@ -1,0 +1,27 @@
+package com.nlpreview.analyzer.config;
+
+import com.nlpreview.analyzer.metrics.SiteVisitInterceptor;
+import com.nlpreview.analyzer.ratelimit.RateLimitInterceptor;
+import lombok.RequiredArgsConstructor;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
+import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
+
+@Configuration
+@RequiredArgsConstructor
+public class WebMvcConfig implements WebMvcConfigurer {
+
+    private final RateLimitInterceptor rateLimitInterceptor;
+    private final SiteVisitInterceptor siteVisitInterceptor;
+
+    @Override
+    public void addInterceptors(InterceptorRegistry registry) {
+        registry.addInterceptor(rateLimitInterceptor)
+                .addPathPatterns("/**")
+                .excludePathPatterns("/actuator/**");
+
+        registry.addInterceptor(siteVisitInterceptor)
+                .addPathPatterns("/**")
+                .excludePathPatterns("/actuator/**");
+    }
+}

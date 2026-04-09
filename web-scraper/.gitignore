@@ -1,0 +1,64 @@
+# =============================================================================
+# Web Scraper Service .gitignore
+# =============================================================================
+
+# ── Python ───────────────────────────────────────────────────────────────────
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.venv/
+venv/
+env/
+*.egg-info/
+*.egg
+dist/
+build/
+.eggs/
+.pytest_cache/
+.coverage
+htmlcov/
+.mypy_cache/
+.ruff_cache/
+pip-log.txt
+
+# ── Environment / Secrets ────────────────────────────────────────────────────
+.env
+.env.*
+!.env.example
+
+# ── Logs ─────────────────────────────────────────────────────────────────────
+logs/
+*.log
+
+# ── Debug / Scratch ──────────────────────────────────────────────────────────
+debug_*.html
+debug_*.py
+_fetch_*_debug.py
+NUL
+scratch/
+
+# ── Data Files ───────────────────────────────────────────────────────────────
+*.csv
+reviews.csv
+*.json.bak
+
+# ── Playwright ───────────────────────────────────────────────────────────────
+playwright-report/
+test-results/
+
+# ── Cookies (may contain session tokens) ─────────────────────────────────────
+cookies/*.json
+cookies/*.txt
+!cookies/.gitkeep
+
+# ── OS ───────────────────────────────────────────────────────────────────────
+.DS_Store
+Thumbs.db
+
+# ── IDE ──────────────────────────────────────────────────────────────────────
+.idea/
+.vscode/
+.claude/
+*.swp
+*.swo

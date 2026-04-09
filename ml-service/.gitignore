@@ -1,0 +1,71 @@
+# =============================================================================
+# ML Service .gitignore
+# =============================================================================
+
+# ── Model Weights (large binary files tracked via Git LFS or excluded) ──────
+models/sentiment/best_model_state.bin
+models/sentiment/Review_Sentiment.pt
+models/*/model.safetensors
+models/*/*.bin
+models/*/*.pt
+models/*/*.onnx
+models/*/*.h5
+# Keep model configs and tokenizers (small JSON/text files)
+!models/*/config.json
+!models/*/tokenizer.json
+!models/*/tokenizer_config.json
+!models/*/vocab.txt
+!models/*/special_tokens_map.json
+
+# ── Python ───────────────────────────────────────────────────────────────────
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.venv/
+venv/
+env/
+*.egg-info/
+*.egg
+dist/
+build/
+.eggs/
+.pytest_cache/
+.coverage
+htmlcov/
+.mypy_cache/
+.ruff_cache/
+pip-log.txt
+
+# ── Environment / Secrets ────────────────────────────────────────────────────
+.env
+.env.*
+!.env.example
+
+# ── Logs ─────────────────────────────────────────────────────────────────────
+logs/
+*.log
+
+# ── Jupyter / Notebooks / Training Artifacts ────────────────────────────────
+*.ipynb
+.ipynb_checkpoints/
+models/**/*.pdf
+models/**/*.png
+
+# ── Data Files ───────────────────────────────────────────────────────────────
+*.csv
+*.tsv
+*.parquet
+*.pkl
+*.pickle
+data/
+
+# ── OS ───────────────────────────────────────────────────────────────────────
+.DS_Store
+Thumbs.db
+
+# ── IDE ──────────────────────────────────────────────────────────────────────
+.idea/
+.vscode/
+*.swp
+*.swo

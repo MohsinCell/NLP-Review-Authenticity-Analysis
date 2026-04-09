@@ -1,0 +1,144 @@
+server:
+  port: ${SERVER_PORT:8080}
+  error:
+    include-message: never
+    include-binding-errors: never
+  servlet:
+    context-path: /api/v1
+
+spring:
+  application:
+    name: review-authenticity-analyzer
+
+  datasource:
+    url: jdbc:postgresql://${DB_HOST:localhost}:${DB_PORT:5432}/${DB_NAME:review_analyzer}
+    username: ${DB_USERNAME:postgres}
+    password: ${DB_PASSWORD}
+    driver-class-name: org.postgresql.Driver
+    hikari:
+      maximum-pool-size: ${DB_POOL_SIZE:20}
+      minimum-idle: 5
+      idle-timeout: 300000
+      connection-timeout: 20000
+      max-lifetime: 1200000
+      pool-name: ReviewAnalyzerPool
+
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    open-in-view: false
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+        format_sql: false
+        jdbc:
+          batch_size: 25
+        order_inserts: true
+        order_updates: true
+
+  flyway:
+    enabled: false
+
+  data:
+    redis:
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}
+      password: ${REDIS_PASSWORD:}
+      timeout: 5000ms
+      lettuce:
+        pool:
+          max-active: 16
+          max-idle: 8
+          min-idle: 2
+
+  jackson:
+    serialization:
+      write-dates-as-timestamps: false
+    default-property-inclusion: non_null
+    date-format: yyyy-MM-dd'T'HH:mm:ss.SSSZ
+
+app:
+  jwt:
+    secret: ${JWT_SECRET}
+    access-token-expiration-ms: ${JWT_ACCESS_EXPIRY:900000}
+    refresh-token-expiration-ms: ${JWT_REFRESH_EXPIRY:604800000}
+
+  encryption:
+    secret-key: ${ENCRYPTION_KEY}
+    algorithm: AES/GCM/NoPadding
+
+  ml-service:
+    base-url: ${ML_SERVICE_URL:http://localhost:5001}
+    timeout-ms: ${ML_SERVICE_TIMEOUT:60000}
+    retry-max-attempts: ${ML_SERVICE_RETRIES:4}
+    retry-delay-ms: ${ML_SERVICE_RETRY_DELAY:3000}
+
+  scraper-service:
+    base-url: ${SCRAPER_SERVICE_URL:http://localhost:5000}
+    timeout-ms: ${SCRAPER_TIMEOUT:30000}
+    poll-interval-ms: ${SCRAPER_POLL_INTERVAL:2000}
+    max-poll-attempts: ${SCRAPER_MAX_POLLS:60}
+    allowed-domains:
+      - amazon.in
+      - amazon.com
+      - amazon.co.uk
+      - flipkart.com
+      - myntra.com
+      - ajio.com
+      - nykaa.com
+      - nykaafashion.com
+
+  rate-limit:
+    anonymous-requests-per-minute: ${RATE_LIMIT_ANON:20}
+    authenticated-requests-per-minute: ${RATE_LIMIT_AUTH:60}
+
+  resend:
+    api-key: ${RESEND_API_KEY:}
+    from-email: ${RESEND_FROM_EMAIL:ReviewIQ <noreply@reviewiq.website>}
+    admin-email: ${RESEND_ADMIN_EMAIL:}
+
+  mail:
+    host: ${MAIL_HOST:smtp.gmail.com}
+    port: ${MAIL_PORT:587}
+    username: ${MAIL_USERNAME:}
+    password: ${MAIL_PASSWORD:}
+
+  otp:
+    length: ${OTP_LENGTH:6}
+    expiration-minutes: ${OTP_EXPIRY_MINUTES:10}
+    max-attempts: ${OTP_MAX_ATTEMPTS:5}
+    cooldown-seconds: ${OTP_COOLDOWN_SECONDS:60}
+
+  admin:
+    email: ${ADMIN_EMAIL:}
+    password: ${ADMIN_PASSWORD:}
+    name: ${ADMIN_NAME:ReviewIQ Admin}
+
+  admin-secret: ${ADMIN_SECRET}
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,prometheus
+      base-path: /actuator
+  endpoint:
+    health:
+      show-details: when_authorized
+      show-components: when_authorized
+  health:
+    redis:
+      enabled: false
+    mail:
+      enabled: false
+    db:
+      enabled: true
+
+logging:
+  level:
+    root: INFO
+    com.nlpreview.analyzer: INFO
+    org.springframework.security: INFO
+    org.hibernate.SQL: WARN
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n"
