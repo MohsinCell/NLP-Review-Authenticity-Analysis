@@ -1,0 +1,687 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Review Scraper</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        :root {
+            --primary: #6366f1;
+            --primary-hover: #4f46e5;
+            --primary-light: #e0e7ff;
+            --surface: #ffffff;
+            --bg: #f1f5f9;
+            --text: #0f172a;
+            --text-2: #64748b;
+            --border: #e2e8f0;
+            --success: #22c55e;
+            --success-bg: #dcfce7;
+            --warning: #f59e0b;
+            --error: #ef4444;
+            --error-bg: #fef2f2;
+            --star: #fbbf24;
+            --star-off: #e2e8f0;
+            --radius: 10px;
+            --shadow: 0 1px 3px rgba(0,0,0,.08), 0 1px 2px rgba(0,0,0,.06);
+            --shadow-lg: 0 10px 25px rgba(0,0,0,.06), 0 4px 10px rgba(0,0,0,.04);
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto,
+                         'Helvetica Neue', Arial, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+            line-height: 1.5;
+        }
+
+        .container { max-width: 820px; margin: 0 auto; padding: 28px 16px; }
+
+        /* ---- header -------------------------------------------------- */
+        .header { text-align: center; margin-bottom: 28px; }
+        .header h1 {
+            font-size: 30px; font-weight: 800;
+            background: linear-gradient(135deg, var(--primary), #a855f7);
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+        }
+        .header p { color: var(--text-2); font-size: 14px; margin-top: 2px; }
+        .sites-list {
+            display: flex; gap: 6px; flex-wrap: wrap;
+            justify-content: center; margin-top: 10px;
+        }
+        .site-chip {
+            padding: 3px 10px; background: #fff; border: 1px solid var(--border);
+            border-radius: 6px; font-size: 12px; color: var(--text-2); font-weight: 500;
+        }
+
+        /* ---- card ---------------------------------------------------- */
+        .card {
+            background: var(--surface); border-radius: var(--radius);
+            box-shadow: var(--shadow); padding: 24px; margin-bottom: 16px;
+        }
+
+        /* ---- form ---------------------------------------------------- */
+        .url-input {
+            width: 100%; padding: 13px 16px; font-size: 15px;
+            border: 2px solid var(--border); border-radius: 8px;
+            outline: none; transition: border-color .2s;
+        }
+        .url-input:focus { border-color: var(--primary); }
+        .url-input::placeholder { color: #94a3b8; }
+
+        /* ---- detection badges --------------------------------------- */
+        .detection {
+            display: flex; align-items: center; gap: 8px;
+            margin-top: 10px; font-size: 13px; color: var(--text-2);
+            min-height: 26px; flex-wrap: wrap;
+        }
+        .badge {
+            display: inline-flex; align-items: center; gap: 4px;
+            padding: 3px 10px; border-radius: 9999px;
+            font-size: 12px; font-weight: 600; text-transform: capitalize;
+        }
+        .badge-site     { background: var(--primary-light); color: var(--primary); }
+        .badge-cookies  { background: var(--success-bg); color: #15803d; }
+        .badge-no-cookies { background: #fef3c7; color: #92400e; }
+        .badge-js       { background: #fef3c7; color: #92400e; }
+
+        /* ---- options ------------------------------------------------- */
+        .options-toggle {
+            display: inline-flex; align-items: center; gap: 6px;
+            margin-top: 16px; padding: 0; border: none; background: none;
+            color: var(--text-2); font-size: 13px; cursor: pointer;
+        }
+        .options-toggle:hover { color: var(--text); }
+        .arrow { transition: transform .2s; font-size: 10px; display: inline-block; }
+        .arrow.open { transform: rotate(90deg); }
+
+        .options-panel {
+            display: none; margin-top: 12px; padding: 16px;
+            background: #f8fafc; border-radius: 8px; border: 1px solid var(--border);
+        }
+        .options-panel.open { display: block; }
+        .options-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; }
+        .option-group label {
+            display: block; font-size: 11px; font-weight: 700;
+            color: var(--text-2); margin-bottom: 4px;
+            text-transform: uppercase; letter-spacing: .5px;
+        }
+        .option-group input[type="number"] {
+            width: 100%; padding: 8px 10px; border: 1px solid var(--border);
+            border-radius: 6px; font-size: 14px; outline: none;
+        }
+        .option-group input[type="number"]:focus { border-color: var(--primary); }
+        .checkbox-group {
+            display: flex; align-items: center; gap: 8px; margin-top: 12px;
+        }
+        .checkbox-group input[type="checkbox"] {
+            width: 16px; height: 16px; accent-color: var(--primary);
+        }
+        .checkbox-group label { font-size: 13px; color: var(--text-2); }
+
+        /* ---- scrape button ------------------------------------------ */
+        .scrape-btn {
+            width: 100%; margin-top: 20px; padding: 13px;
+            background: var(--primary); color: #fff; border: none;
+            border-radius: 8px; font-size: 15px; font-weight: 600;
+            cursor: pointer; transition: background .2s, transform .1s;
+            display: flex; align-items: center; justify-content: center; gap: 8px;
+        }
+        .scrape-btn:hover:not(:disabled) { background: var(--primary-hover); }
+        .scrape-btn:active:not(:disabled) { transform: scale(.98); }
+        .scrape-btn:disabled { opacity: .55; cursor: not-allowed; }
+
+        /* spinner */
+        .spinner {
+            display: none; width: 18px; height: 18px;
+            border: 2.5px solid rgba(255,255,255,.3);
+            border-top-color: #fff; border-radius: 50%;
+            animation: spin .7s linear infinite;
+        }
+        .scrape-btn.loading .spinner { display: inline-block; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        /* ---- progress ----------------------------------------------- */
+        .progress-card { display: none; }
+        .progress-card.active { display: block; }
+        .progress-header {
+            display: flex; justify-content: space-between;
+            align-items: center; margin-bottom: 12px;
+        }
+        .progress-status { font-weight: 600; font-size: 14px; }
+        .progress-count { font-size: 13px; color: var(--text-2); }
+
+        .bar-track {
+            height: 7px; background: var(--border);
+            border-radius: 4px; overflow: hidden;
+        }
+        .bar-fill {
+            height: 100%; border-radius: 4px;
+            background: linear-gradient(90deg, var(--primary), #a855f7);
+            transition: width .6s ease; width: 0%;
+        }
+        .bar-fill.indeterminate {
+            width: 30%;
+            animation: slide 1.4s ease-in-out infinite;
+        }
+        @keyframes slide {
+            0%   { transform: translateX(-100%); }
+            100% { transform: translateX(400%); }
+        }
+
+        .progress-message {
+            margin-top: 8px; font-size: 13px; color: var(--text-2);
+        }
+
+        .status-running   { color: var(--primary); }
+        .status-completed { color: var(--success); }
+        .status-failed    { color: var(--error); }
+
+        .error-box {
+            display: none; padding: 12px 16px; margin-top: 12px;
+            background: var(--error-bg); border: 1px solid #fecaca;
+            border-radius: 8px; color: #991b1b; font-size: 13px;
+        }
+        .error-box.active { display: block; }
+
+        /* ---- results ------------------------------------------------ */
+        .results-card { display: none; }
+        .results-card.active { display: block; }
+        .results-header {
+            display: flex; justify-content: space-between;
+            align-items: center; margin-bottom: 16px; flex-wrap: wrap; gap: 8px;
+        }
+        .results-header h3 { font-size: 16px; font-weight: 700; }
+
+        .download-btn {
+            display: inline-flex; align-items: center; gap: 6px;
+            padding: 8px 18px; background: var(--success); color: #fff;
+            border: none; border-radius: 6px; font-size: 13px;
+            font-weight: 600; cursor: pointer; text-decoration: none;
+            transition: background .2s;
+        }
+        .download-btn:hover { background: #16a34a; }
+
+        /* stats */
+        .stats {
+            display: grid; grid-template-columns: repeat(3,1fr);
+            gap: 12px; margin-bottom: 20px;
+        }
+        .stat {
+            text-align: center; padding: 14px 8px;
+            background: #f8fafc; border-radius: 8px;
+        }
+        .stat-value { font-size: 26px; font-weight: 800; color: var(--primary); }
+        .stat-label {
+            font-size: 11px; color: var(--text-2);
+            text-transform: uppercase; letter-spacing: .5px; margin-top: 2px;
+        }
+
+        /* rating distribution */
+        .dist { margin-bottom: 20px; }
+        .dist-row {
+            display: flex; align-items: center; gap: 8px;
+            margin-bottom: 4px; font-size: 12px; color: var(--text-2);
+        }
+        .dist-label { width: 16px; text-align: right; font-weight: 600; }
+        .dist-bar-track {
+            flex: 1; height: 8px; background: var(--border); border-radius: 4px;
+            overflow: hidden;
+        }
+        .dist-bar-fill {
+            height: 100%; border-radius: 4px; background: var(--star);
+            transition: width .4s ease;
+        }
+        .dist-count { width: 26px; font-size: 11px; }
+
+        /* table */
+        .table-wrap { overflow-x: auto; }
+        .reviews-table { width: 100%; border-collapse: collapse; }
+        .reviews-table thead th {
+            text-align: left; padding: 10px 12px; font-size: 11px;
+            font-weight: 700; color: var(--text-2);
+            text-transform: uppercase; letter-spacing: .5px;
+            border-bottom: 2px solid var(--border);
+        }
+        .reviews-table tbody tr {
+            border-bottom: 1px solid var(--border); transition: background .1s;
+        }
+        .reviews-table tbody tr:last-child { border-bottom: none; }
+        .reviews-table tbody tr:hover { background: #f8fafc; }
+        .reviews-table tbody td {
+            padding: 12px; font-size: 13px; vertical-align: top;
+        }
+        .review-rating { white-space: nowrap; }
+        .review-stars { color: var(--star); font-size: 15px; letter-spacing: 1px; }
+        .review-stars-off { color: var(--star-off); font-size: 15px; letter-spacing: 1px; }
+        .review-num {
+            color: var(--text-2); font-size: 12px; margin-left: 6px;
+            font-weight: 600;
+        }
+        .review-text { line-height: 1.6; }
+        .review-date { white-space: nowrap; color: var(--text-2); font-size: 12px; }
+
+        /* pagination */
+        .paging {
+            display: flex; justify-content: center;
+            align-items: center; gap: 8px; margin-top: 18px;
+        }
+        .page-btn {
+            padding: 7px 14px; border: 1px solid var(--border);
+            border-radius: 6px; background: var(--surface);
+            color: var(--text); cursor: pointer; font-size: 13px;
+            transition: all .15s;
+        }
+        .page-btn:hover:not(:disabled) {
+            border-color: var(--primary); color: var(--primary);
+        }
+        .page-btn:disabled { opacity: .35; cursor: not-allowed; }
+        .page-info { font-size: 13px; color: var(--text-2); }
+
+        /* footer */
+        .footer {
+            text-align: center; padding: 18px; font-size: 12px; color: #94a3b8;
+        }
+
+        @media (max-width: 560px) {
+            .options-grid { grid-template-columns: 1fr; }
+            .stats { grid-template-columns: repeat(3,1fr); }
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <!-- header -->
+    <div class="header">
+        <h1>Review Scraper</h1>
+        <p>Extract product reviews from e-commerce sites</p>
+        <div class="sites-list">
+            <span class="site-chip">Amazon</span>
+            <span class="site-chip">Flipkart</span>
+            <span class="site-chip">Myntra</span>
+            <span class="site-chip">Ajio</span>
+        </div>
+    </div>
+
+    <!-- input card -->
+    <div class="card">
+        <input type="text" class="url-input" id="urlInput"
+               placeholder="Paste a product or reviews page URL..." autocomplete="off">
+
+        <div class="detection" id="detection"></div>
+
+        <button class="options-toggle" id="optionsToggle" type="button">
+            <span class="arrow" id="optionsArrow">&#9654;</span>
+            Advanced Options
+        </button>
+
+        <div class="options-panel" id="optionsPanel">
+            <div class="options-grid">
+                <div class="option-group">
+                    <label for="maxPages">Max Pages (0 = all)</label>
+                    <input type="number" id="maxPages" value="0" min="0" max="500">
+                </div>
+                <div class="option-group">
+                    <label for="minDelay">Min Delay (s)</label>
+                    <input type="number" id="minDelay" value="5" min="1" max="60" step="0.5">
+                </div>
+                <div class="option-group">
+                    <label for="maxDelay">Max Delay (s)</label>
+                    <input type="number" id="maxDelay" value="12" min="2" max="120" step="0.5">
+                </div>
+            </div>
+            <div class="checkbox-group">
+                <input type="checkbox" id="renderJs">
+                <label for="renderJs">Force JS rendering (Selenium)</label>
+            </div>
+        </div>
+
+        <button class="scrape-btn" id="scrapeBtn" type="button">
+            <span class="spinner"></span>
+            <span class="btn-label">Start Scraping</span>
+        </button>
+    </div>
+
+    <!-- progress card -->
+    <div class="card progress-card" id="progressCard">
+        <div class="progress-header">
+            <span class="progress-status" id="progressStatus">Initializing...</span>
+            <span class="progress-count" id="progressCount"></span>
+        </div>
+        <div class="bar-track">
+            <div class="bar-fill" id="progressBar"></div>
+        </div>
+        <div class="progress-message" id="progressMessage"></div>
+        <div class="error-box" id="errorBox"></div>
+    </div>
+
+    <!-- results card -->
+    <div class="card results-card" id="resultsCard">
+        <div class="results-header">
+            <h3 id="resultsTitle">Results</h3>
+            <a class="download-btn" id="downloadBtn" href="#">&#8595; Download CSV</a>
+        </div>
+
+        <div class="stats" id="statsBar">
+            <div class="stat">
+                <div class="stat-value" id="statTotal">0</div>
+                <div class="stat-label">Reviews</div>
+            </div>
+            <div class="stat">
+                <div class="stat-value" id="statAvg">0</div>
+                <div class="stat-label">Avg Rating</div>
+            </div>
+            <div class="stat">
+                <div class="stat-value" id="statPages">0</div>
+                <div class="stat-label">Pages</div>
+            </div>
+        </div>
+
+        <div class="dist" id="distChart"></div>
+
+        <div class="table-wrap">
+            <table class="reviews-table">
+                <thead>
+                    <tr>
+                        <th style="width:130px">Rating</th>
+                        <th>Review</th>
+                        <th style="width:140px">Date</th>
+                    </tr>
+                </thead>
+                <tbody id="reviewsBody"></tbody>
+            </table>
+        </div>
+
+        <div class="paging" id="pagination"></div>
+    </div>
+
+    <div class="footer">
+        Respects robots.txt &middot; Strict rate limiting &middot; Cookie authentication
+    </div>
+</div>
+
+<script>
+/* ================================================================== */
+/*  State                                                              */
+/* ================================================================== */
+let jobId = null;
+let poller = null;
+let reviews = [];
+let rPage = 1;
+const PER_PAGE = 20;
+
+/* ================================================================== */
+/*  Elements                                                           */
+/* ================================================================== */
+const $  = id => document.getElementById(id);
+const ui = {
+    url:         $('urlInput'),
+    detection:   $('detection'),
+    toggler:     $('optionsToggle'),
+    arrow:       $('optionsArrow'),
+    panel:       $('optionsPanel'),
+    btn:         $('scrapeBtn'),
+    btnLabel:    document.querySelector('.btn-label'),
+    progress:    $('progressCard'),
+    status:      $('progressStatus'),
+    count:       $('progressCount'),
+    bar:         $('progressBar'),
+    msg:         $('progressMessage'),
+    errBox:      $('errorBox'),
+    results:     $('resultsCard'),
+    title:       $('resultsTitle'),
+    download:    $('downloadBtn'),
+    statsBar:    $('statsBar'),
+    statTotal:   $('statTotal'),
+    statAvg:     $('statAvg'),
+    statPages:   $('statPages'),
+    dist:        $('distChart'),
+    tbody:       $('reviewsBody'),
+    paging:      $('pagination'),
+};
+
+/* ================================================================== */
+/*  Options toggle                                                     */
+/* ================================================================== */
+ui.toggler.onclick = () => {
+    ui.panel.classList.toggle('open');
+    ui.arrow.classList.toggle('open');
+};
+
+/* ================================================================== */
+/*  URL detection (debounced)                                          */
+/* ================================================================== */
+let detectTimer = null;
+ui.url.addEventListener('input', () => {
+    clearTimeout(detectTimer);
+    const v = ui.url.value.trim();
+    if (v.length < 12) { ui.detection.innerHTML = ''; return; }
+    detectTimer = setTimeout(() => detect(v), 350);
+});
+
+async function detect(url) {
+    try {
+        const r = await fetch('/api/detect?url=' + encodeURIComponent(url));
+        const d = await r.json();
+        if (!d.detected) {
+            ui.detection.innerHTML =
+                '<span style="color:var(--error);font-size:12px">Unsupported site</span>';
+            return;
+        }
+        let h = '<span class="badge badge-site">' + d.site + '</span>';
+        h += d.cookies_found
+            ? '<span class="badge badge-cookies">Cookies loaded</span>'
+            : '<span class="badge badge-no-cookies">No cookies</span>';
+        if (d.requires_js) h += '<span class="badge badge-js">JS required</span>';
+        ui.detection.innerHTML = h;
+    } catch { ui.detection.innerHTML = ''; }
+}
+
+/* ================================================================== */
+/*  Start scraping                                                     */
+/* ================================================================== */
+ui.btn.onclick = startScrape;
+ui.url.addEventListener('keydown', e => { if (e.key === 'Enter') startScrape(); });
+
+async function startScrape() {
+    const url = ui.url.value.trim();
+    if (!url) { ui.url.focus(); return; }
+
+    ui.btn.disabled = true;
+    ui.btn.classList.add('loading');
+    ui.btnLabel.textContent = 'Scraping...';
+    ui.progress.classList.add('active');
+    ui.results.classList.remove('active');
+    ui.errBox.classList.remove('active');
+    ui.bar.style.width = '0%';
+    ui.bar.classList.remove('indeterminate');
+    ui.status.className = 'progress-status status-running';
+    ui.status.textContent = 'Starting...';
+    ui.count.textContent = '';
+    ui.msg.textContent = '';
+
+    const mpRaw = parseInt($('maxPages').value, 10);
+    const maxPages = isNaN(mpRaw) ? 5 : mpRaw;
+
+    const body = {
+        url,
+        // 0 means unlimited (scrape until exhausted).
+        max_pages:  maxPages,
+        min_delay:  parseFloat($('minDelay').value) || 5,
+        max_delay:  parseFloat($('maxDelay').value) || 12,
+        render_js:  $('renderJs').checked,
+    };
+
+    try {
+        const r = await fetch('/api/scrape', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify(body),
+        });
+        const d = await r.json();
+        if (d.error) throw new Error(d.error);
+        jobId = d.job_id;
+        startPolling();
+    } catch (e) {
+        showError(e.message);
+        resetBtn();
+    }
+}
+
+/* ================================================================== */
+/*  Polling                                                            */
+/* ================================================================== */
+function startPolling() {
+    if (poller) clearInterval(poller);
+    poll();
+    poller = setInterval(poll, 2000);
+}
+
+async function poll() {
+    if (!jobId) return;
+    try {
+        const r = await fetch('/api/status/' + jobId);
+        const d = await r.json();
+        updateProgress(d);
+        if (d.status === 'completed') { stopPoll(); showResults(d); resetBtn(); }
+        else if (d.status === 'failed') { stopPoll(); showError(d.error); resetBtn(); }
+    } catch {}
+}
+
+function stopPoll() { clearInterval(poller); poller = null; }
+
+function updateProgress(d) {
+    const max = d.max_pages || 0;
+    const unlimited = max <= 0;
+
+    if (d.status === 'running' && d.current_page === 0) {
+        ui.bar.classList.add('indeterminate');
+    } else if (unlimited) {
+        // No known end - keep a subtle animated bar.
+        ui.bar.classList.add('indeterminate');
+    } else {
+        const pct = Math.min(100, Math.round(d.current_page / max * 100));
+        ui.bar.classList.remove('indeterminate');
+        ui.bar.style.width = pct + '%';
+    }
+
+    ui.status.textContent =
+        d.status === 'running'   ? 'Scraping...' :
+        d.status === 'completed' ? 'Complete' : 'Failed';
+    ui.status.className = 'progress-status status-' + d.status;
+
+    if (d.current_page > 0) {
+        const pageLabel = unlimited
+            ? 'Page ' + d.current_page
+            : 'Page ' + d.current_page + '/' + max;
+        ui.count.textContent = pageLabel + '  ·  ' + d.total_reviews + ' reviews';
+    }
+    ui.msg.textContent = d.message || '';
+}
+
+/* ================================================================== */
+/*  Results                                                            */
+/* ================================================================== */
+function showResults(d) {
+    reviews = d.reviews || [];
+    rPage = 1;
+
+    if (!reviews.length) {
+        ui.title.textContent = 'No reviews found';
+        ui.download.style.display = 'none';
+        ui.statsBar.style.display = 'none';
+        ui.dist.innerHTML = '';
+        ui.results.classList.add('active');
+        ui.tbody.innerHTML =
+            '<tr><td colspan="3" style="text-align:center;color:#94a3b8;padding:32px">' +
+            'No reviews extracted. Try a different URL or check cookies.</td></tr>';
+        ui.paging.innerHTML = '';
+        return;
+    }
+
+    /* stats */
+    ui.statsBar.style.display = '';
+    ui.statTotal.textContent = reviews.length;
+    const avg = (reviews.reduce((s, r) => s + r.rating, 0) / reviews.length).toFixed(1);
+    ui.statAvg.textContent = avg;
+    ui.statPages.textContent = d.current_page;
+
+    /* distribution */
+    const counts = [0,0,0,0,0];
+    reviews.forEach(r => { const i = Math.min(4, Math.max(0, Math.round(r.rating) - 1)); counts[i]++; });
+    const maxC = Math.max(...counts, 1);
+    let distHtml = '';
+    for (let i = 4; i >= 0; i--) {
+        const pct = Math.round(counts[i] / maxC * 100);
+        distHtml +=
+            '<div class="dist-row">' +
+            '<span class="dist-label">' + (i + 1) + '</span>' +
+            '<span style="color:var(--star);font-size:13px">&#9733;</span>' +
+            '<div class="dist-bar-track"><div class="dist-bar-fill" style="width:' + pct + '%"></div></div>' +
+            '<span class="dist-count">' + counts[i] + '</span></div>';
+    }
+    ui.dist.innerHTML = distHtml;
+
+    ui.title.textContent = 'Results (' + reviews.length + ' reviews)';
+    ui.download.style.display = '';
+    ui.download.href = '/api/download/' + jobId;
+    renderPage();
+    ui.results.classList.add('active');
+}
+
+function renderPage() {
+    const start = (rPage - 1) * PER_PAGE;
+    const slice = reviews.slice(start, start + PER_PAGE);
+    const pages = Math.ceil(reviews.length / PER_PAGE);
+
+    ui.tbody.innerHTML = slice.map(r => {
+        const full = Math.round(r.rating);
+        const empty = 5 - full;
+        return '<tr>' +
+            '<td class="review-rating">' +
+                '<span class="review-stars">' + '\u2605'.repeat(full) + '</span>' +
+                '<span class="review-stars-off">' + '\u2605'.repeat(empty) + '</span>' +
+                '<span class="review-num">' + r.rating + '</span>' +
+            '</td>' +
+            '<td class="review-text">' + esc(r.text) + '</td>' +
+            '<td class="review-date">' + esc(r.date || '') + '</td></tr>';
+    }).join('');
+
+    ui.paging.innerHTML = pages > 1
+        ? '<button class="page-btn" onclick="go(' + (rPage - 1) + ')"' +
+          (rPage === 1 ? ' disabled' : '') + '>&lsaquo; Prev</button>' +
+          '<span class="page-info">Page ' + rPage + ' of ' + pages + '</span>' +
+          '<button class="page-btn" onclick="go(' + (rPage + 1) + ')"' +
+          (rPage === pages ? ' disabled' : '') + '>Next &rsaquo;</button>'
+        : '';
+}
+
+function go(p) {
+    rPage = p;
+    renderPage();
+    ui.results.scrollIntoView({behavior: 'smooth', block: 'start'});
+}
+
+/* ================================================================== */
+/*  Helpers                                                            */
+/* ================================================================== */
+function showError(msg) {
+    ui.status.textContent = 'Failed';
+    ui.status.className = 'progress-status status-failed';
+    ui.errBox.textContent = msg;
+    ui.errBox.classList.add('active');
+}
+
+function resetBtn() {
+    ui.btn.disabled = false;
+    ui.btn.classList.remove('loading');
+    ui.btnLabel.textContent = 'Start Scraping';
+}
+
+const _esc = document.createElement('div');
+function esc(t) { _esc.textContent = t; return _esc.innerHTML; }
+</script>
+</body>
+</html>

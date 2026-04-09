@@ -1,0 +1,143 @@
+# =============================================================================
+# NLP Review Authenticity Analyzer - Root .gitignore
+# =============================================================================
+
+# ── Build Artifacts ──────────────────────────────────────────────────────────
+backend/target/
+backend/*.jar
+frontend/dist/
+frontend/dist-ssr/
+frontend/node_modules/
+
+# ── IDE / Editor ─────────────────────────────────────────────────────────────
+.idea/
+*.iml
+.vscode/
+.project
+.classpath
+.settings/
+.factorypath
+*.swp
+*.swo
+*~
+*.bak
+*.orig
+.claude/
+.cursor/
+
+# ── Logs ─────────────────────────────────────────────────────────────────────
+logs/
+*.log
+*.log.gz
+*.pid
+nohup.out
+hs_err_pid*
+
+# ── Environment / Secrets ────────────────────────────────────────────────────
+.env
+.env.*
+!.env.example
+backend/.env
+ml-service/.env
+web-scraper/.env
+*.pem
+*.key
+*.crt
+*.p12
+*.jks
+credentials.json
+service-account*.json
+
+# ── Tests / Debug ────────────────────────────────────────────────────────────
+tests/
+backend/src/test/
+*.test.*
+*.spec.*
+
+# ── Python ───────────────────────────────────────────────────────────────────
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.venv/
+venv/
+env/
+ml_venv/
+scraper_venv/
+*.egg-info/
+*.egg
+dist/
+build/
+.eggs/
+pip-log.txt
+pip-delete-this-directory.txt
+.pytest_cache/
+.coverage
+htmlcov/
+.mypy_cache/
+.ruff_cache/
+
+# ── ML Model Weights (large binary files) ───────────────────────────────────
+ml-service/models/sentiment/best_model_state.bin
+ml-service/models/sentiment/Review_Sentiment.pt
+ml-service/models/*/model.safetensors
+ml-service/models/*/*.bin
+ml-service/models/*/*.pt
+ml-service/models/*/*.onnx
+ml-service/models/*/*.h5
+ml-service/models/**/model.safetensors
+ml-service/models/**/*.bin
+ml-service/models/**/*.pt
+ml-service/models/**/*.onnx
+ml-service/models/**/*.h5
+# Keep model configs and tokenizers (small JSON/text files)
+!ml-service/models/*/config.json
+!ml-service/models/*/tokenizer.json
+!ml-service/models/*/tokenizer_config.json
+!ml-service/models/*/vocab.txt
+!ml-service/models/*/special_tokens_map.json
+
+# ── ML Notebooks, PDFs, images (training artifacts) ─────────────────────────
+ml-service/models/**/*.ipynb
+ml-service/models/**/*.pdf
+ml-service/models/**/*.png
+
+# ── Cookies (session tokens) ────────────────────────────────────────────────
+web-scraper/cookies/*.json
+web-scraper/cookies/*.txt
+!web-scraper/cookies/.gitkeep
+
+# ── OS ───────────────────────────────────────────────────────────────────────
+.DS_Store
+Thumbs.db
+desktop.ini
+ehthumbs.db
+ehthumbs_vista.db
+$RECYCLE.BIN/
+*.lnk
+
+# ── Misc ─────────────────────────────────────────────────────────────────────
+*.csv
+*.html
+!frontend/**/*.html
+!web-scraper/**/templates/*.html
+*.tmp
+*.temp
+
+# ── Docker ───────────────────────────────────────────────────────────────────
+docker-compose.override.yml
+
+# ── Debug / Scratch ──────────────────────────────────────────────────────────
+debug_*.html
+debug_*.py
+_fetch_*_debug.py
+scratch/
+temp/
+tmp/
+NUL
+
+# ── Distribution Packages ────────────────────────────────────────────────────
+ReviewIQ-Chrome-Extension-*.zip
+
+# ── README template (not part of the project) ───────────────────────────────
+readme template.md
